@@ -42,6 +42,22 @@ app.get("/players/", async(request, response) => {
     response.send(players);
 });
 
+// Get Player by Player Id API
+app.get("/players/:playerId/", async(request, response) => {
+    const { playerId } = request.params;
 
+    const getPlayerQuery = `
+    SELECT
+      player_id as playerId,
+      player_name as playerName
+    FROM
+      player_details
+    WHERE
+      player_id = ${playerId};`;
+    
+    const player = await db.get(getPlayerQuery);
+
+    response.send(player);
+})
 
 module.exports = app;
