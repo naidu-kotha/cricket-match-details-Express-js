@@ -30,6 +30,17 @@ const initializeDbAndServer = async() => {
 
 initializeDbAndServer();
 
+
+// Convert Player Details DBObject To Response Object
+const convertPlayerDetailsDBObjectToResponseObject = (dbObject) => {
+    return {
+        playerId: dbObject.player_id,
+        playerName: dbObject.player_name,
+    };
+};
+
+
+
 // Get All Players API
 app.get("/players/", async(request, response) => {
     const getPlayersQuery = `
@@ -103,7 +114,7 @@ app.get("/matches/:matchId/", async(request, response) => {
 });
 
 
-// Get All Matches of Player by Player_id API
+// Get All Matches of Player by Player Id API
 app.get("/players/:playerId/matches/", async(request, response) => {
     const { playerId } = request.params;
 
@@ -123,6 +134,50 @@ app.get("/players/:playerId/matches/", async(request, response) => {
     response.send(matchesArray);
 });
 
+
+// Get All Players in a Match API
+app.get("/matches/:matchId/players", async(request, response) => {
+    const { matchId } = request.params;
+
+    const getPlayersOfMatchQuery = `
+    SELECT
+      *
+    FROM
+      player_details INNER
+      JOIN player_match_score ON 
+      player_details.player_id = player_match_score.player_id
+    WHERE
+      player_match_score.match_id = '${matchId}';`;
+
+    const playersInMatchArray = await db.all(getPlayersOfMatchQuery);
+
+    response.send(
+        playersInMatchArray.map((player) => convertPlayerDetailsDBObjectToResponseObject(player))
+    );
+});
+
+
+// Get Statistics of Player by Player Id
+app.get("/players/:playerId/playerScores/", async(request, response) => {
+    const { playerId } = request.params;
+
+    const getPlayerStatisticsQuery = `
+    SELECT
+      player_details.player_id as playerId,
+      player_name as playerName,
+      SUM(score) as totalScore,
+      SUM(fours) as totalFours,
+      SUM(sixes) as totalSixes
+    FROM
+      player_match_score NATURAL JOIN player_details
+    WHERE
+      player_details.player_id = ${playerId};`;
+
+    const playerStatistics = await db.get(getPlayerStatisticsQuery);
+
+    response.send(playerStatistics);
+
+});
 
 
 
