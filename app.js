@@ -61,7 +61,7 @@ app.get("/players/:playerId/", async(request, response) => {
 });
 
 
-// Update player by Player Id
+// Update player by Player Id API
 app.put("/players/:playerId/", async(request, response) => {
     const { playerId } = request.params;
 
@@ -79,6 +79,29 @@ app.put("/players/:playerId/", async(request, response) => {
 
     response.send("Player Details Updated");
 });
+
+
+// Get Matches by Match Id
+app.get("/matches/:matchId/", async(request, response) => {
+    const { matchId } = request.params;
+
+    const getMatchQuery = `
+    SELECT
+      match_id as matchId,
+      match,
+      year
+    FROM
+      match_details
+    WHERE
+      match_id = ${ matchId };`;
+    
+    const match = await db.get(getMatchQuery);
+
+    response.send(match);
+});
+
+
+
 
 
 
